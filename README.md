@@ -126,17 +126,97 @@ itself is returned.
 ## Special Forms
 
 The following special forms take precedence over the last section. Each section
-starts with the syntax, followed by the semantics.
+starts with the syntax, followed by a one line summary, followed by a
+detailed description of the semantics.
 
 ### Table of Contents
 
+- [Lambda](#lambda)
+- [Let Forms](#let-forms)
+  - [Single Variable](#single-variable)
 - [Conditional Branch](#conditional-branch)
+
+### Lambda
+```
+(fn (parameter ...) body...)
+parameter := type symbol
+           | type (optional symbol :default value :passed symbol :guard predicate?)
+           | type (keyword  symbol keyword :default value  :passed symbol :guard predicate?)
+           | &symbol
+```
+
+Creates a function that accepts the arguments to be bound to the given
+parameters, and executes the given forms in a closure with the arguments bound
+to their respective parameters, returning the value of the last form of the body
+as the result.
+
+When called, the first thing the returned lambda does is bind the arguments to
+their specified parameters in a new closure. Each parameter form can be
+specified in several different ways.
+
+Most forms consist of two seperate parts, the type specifier and the binding
+specifier. The type specifier is evaluated, the value of which is the type
+expected of the matched argument. The binding specified can be many things, as
+follows.
+
+The most basic form of the binding specifier is a single unquoted symbol. This
+is the symbol that the matched argument should be bound to. This form of
+parameter must be matched, and they are matched in the order they are defined in
+the parameter list. These must precede all optional parameters.
+
+The binding specifier may be a list. If it is, the first value of the list can
+either be the unquoted symbol `optional` or `keyword`.
+
+If the first item in the list is the unquoted symbol `optional`, then an
+optional argument is specified, meaning this parameter does not need to be
+matched in the argument list.  The second symbol is the name to bind the
+matched argument to, if it was matched. Then any number of key value pairs can
+be specified as optionals. All optional parameters must follow nonoptional
+parameters. These parameter forms are matched in the order they are defined in
+the parameter list.
+
+If the first item in the list is the unquoted symbol `keyword`, then a keyword
+argument is specified, meaning this parameter should be specified by an optional
+key-value pair. The second item in the list is an unquoted symbol to bind the
+value afer the keyword to, if it was specified. Keyword parameters need no order,
+since they are specified by a key anywhere in the argument list. The third item
+in the list is the keyword for which the value should be found in the argument
+list.
+
+Both of these binding specified share a number of options, as follows.
+
+The `:default` option specifies a value to bind to the symbol if it was not
+matched with a value in the argument list.
+
+The `:passed` option specifies a symbol that will be bound to a value
+representing whether the parameter was matched with an argument or not. If the
+parameter was matched, the symbol will be bound to 't in the function body,
+otherwise it will be bound to nil.
+
+The `:guard` option specifies a predicate function to call with a single
+argument that is the value matched in the argument list. If the value of calling
+this function is nil, then the argument will not be matched, and the whole
+function evaluation will not succeed.
+
+The body forms are then run in the created closure. The final form's value is
+returned as the value of evaluating the returned lambda.
+
+### Let Forms
+
+## Single Variable
+```
+(let var value body...)
+```
 
 ### Conditional Branch
 ```
 (if condition first second)
 ```
 
+Branches to either the first or second branch depending on the condition.
+
 Evaluates the condition. If it is not nil, it evaluates the first form,
 returning it's value, otherwise it evaluates the second form, returning that
 form's value.
+
+
