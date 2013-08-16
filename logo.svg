@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="768"
+   height="384"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="logo.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="361.82958"
+     inkscape:cy="201.82561"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="719"
+     inkscape:window-x="0"
+     inkscape:window-y="29"
+     inkscape:window-maximized="1"
+     fit-margin-top="42"
+     fit-margin-left="76"
+     fit-margin-right="76"
+     fit-margin-bottom="42" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(34,-668.36218)">
+    <path
+       style="fill:#483737;stroke:none"
+       d="m 190,710.36218 c -82.84271,0 -150,67.15729 -150,150 0,82.84271 67.15729,150.00002 150,150.00002 82.84271,0 150,-67.15731 150,-150.00002 0,-82.84271 -67.15729,-150 -150,-150 z m 0,101 c 27.61424,0 50,22.38576 50,50 0,27.61424 -22.38576,50 -50,50 -27.61424,0 -50,-22.38576 -50,-50 0,-27.61424 22.38576,-50 50,-50 z"
+       id="path3796"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#6c5d53;fill-rule:evenodd;stroke:none"
+       d="m 190.00335,711.06192 c -38.21328,0.002 -76.43834,14.56335 -105.593752,43.71875 -58.310699,58.31078 -58.273349,152.85158 0.03125,211.15625 58.304682,58.30458 152.814222,58.31078 211.125002,0 0.10285,-0.1029 0.21003,-0.2095 0.3125,-0.3125 L 225.2846,895.03067 c -8.9775,9.13094 -21.46458,14.8125 -35.28125,14.8125 -27.32983,0 -49.5,-22.13892 -49.5,-49.46875 0,-27.32983 22.17017,-49.5 49.5,-49.5 13.82443,0 26.33392,5.67254 35.3125,14.8125 l 70.5625,-70.59375 c -0.10332,-0.10391 -0.17756,-0.20882 -0.28125,-0.3125 -29.15233,-29.15234 -67.38047,-43.72076 -105.59375,-43.71875 z"
+       id="path2993"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:131.25616455px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#6c5d53;fill-opacity:1;stroke:none;font-family:Sans"
+       x="237.20451"
+       y="914.78375"
+       id="text3024"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0158253,0.98442124)"><tspan
+         sodipodi:role="line"
+         id="tspan3026"
+         x="237.20451"
+         y="914.78375"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Verdana;-inkscape-font-specification:Verdana">A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:131.25616455px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#483737;fill-opacity:1;stroke:none;font-family:Sans"
+       x="234.88762"
+       y="914.46899"
+       id="text3024-5"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0158253,0.98442124)"><tspan
+         sodipodi:role="line"
+         id="tspan3026-6"
+         x="234.88762"
+         y="914.46899"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Verdana;-inkscape-font-specification:Verdana">  lbum</tspan></text>
+  </g>
+</svg>
