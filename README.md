@@ -9,6 +9,47 @@ technology and bringing that technology to market under the ideology that
 companies that go directly from concept to reality the fastest maintain an
 advantage over their competitors.
 
+Performance is an important part of any program, so Album is implemented with a
+JIT compiler. Improvements focused on performance are greatly encouraged, and
+the JIT itself is open source and bootstrapping. The same compiler that the JIT
+uses is used in compiling the JIT itself. Album developers interested in helping
+with the JIT should feel right at home.
+
+Correctness is fairly subjective, but there are standards to adhere too. Things
+shouldn't be "special" if they don't need to be. Special forms should be limited
+and the standard library should be small. Libraries need to be developed as
+modules, not part of the core library, so that we can encourage competition
+between different modules. This includes things like IO, networking, and
+graphics.
+
+However, some things need to be standardized. For example, concurrency can
+require special access to the VM to be implemented in some ways, and crosses
+boundaries between modules frequently. Restarts are the same way. By including
+these in the core language, one can be sure that everyone writes code that is
+fundamentally compatible with other people's code. For example, look at how not
+having a standard error handling mechanism works in C.
+
+Core libraries can still be challenged. By creating a new module, and using the
+foreign function interface, one can prove the supremacy of a new module. If it
+needs to be implemented in the core VM, then a new fork is suggested. When
+proves itself worthy, it can be swapped in to the core library quickly. Using
+the power of homoiconicity, old code can easily be automatically updated to a
+new library. Don't be afraid to challenge assumptions!
+
+Powerful features are not restricted, and new suggestions are important to the
+ecosystem. Staying on top of the latest advancements in language design is a
+priority and experimentation is encouraged. Generally, several releases are
+maintained at once, and production code need not update to every new version.
+Stability is maintained within a single minor version. As such, git is a perfect
+version control system to keep multiple running versions in the same repository.
+
+Since Album is such a fast moving environment with multiple versions to maintain
+and many improvements to review and merge, maintainers are always in need. The
+best way to become a maintainer is to start contributing to the code itself and
+commenting on other pull requests. If you work with a business and have
+significant experience, feel free to email me directly to talk about maintainer
+access.
+
 ## Some syntax stuff
 
 ```
