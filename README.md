@@ -369,20 +369,20 @@ that they are used wisely, and so it isn't a problem.
 # Notes
 
 *What's left:*
-foreign functions
-assignment
-dynamic/globals
-quoting
-lists
-numbers
-characters
-keywords
-packages
-structs
-arity matching
-restarts
-read macros
-concurrency
+- foreign functions
+- assignment
+- dynamic/globals
+- quoting
+- lists
+- numbers
+- characters
+- keywords
+- packages
+- structs
+- arity matching
+- restarts
+- read macros
+- concurrency
 
 <!--%a-%t
 s/[^A-Za-z0-9\s]//g
