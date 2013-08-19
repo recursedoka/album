@@ -175,10 +175,15 @@ detailed description of the semantics.
 
 ### Table of Contents
 
-- [Function Definition](#function-definition)
+- [Functions and Macros](#functions-and-macros)
+  - [Functions](#functions)
+  - [Macros](#macros)
+  - [Evaluation](#evaluation)
 - [Conditional Branch](#conditional-branch)
 
-### Function Definition
+### Functions and Macros
+
+#### Functions
 ```
 (fn (parameter ...) :case guard :evaluate nil :dynamic 't body...)
 parameter := type symbol
@@ -251,19 +256,10 @@ and arguments bound to a new, different closure from the body) that determines
 whether the function should continue to be called. If the value of the form is
 nil, the function will not be executed, and an error will be triggered.
 
-The `:dynamic` option specifies whether the function will be evaluated with a
-dynamic scope or a lexical scope. If you don't know what you're doing, you
-should leave this option alone. This is mostly useful for macro-like functions.
-If the value of this option is `nil`, the binding will be lexical, which is the
-default value, but if you set it to something else, the function will be scoped
-dynamically, meaning it is evaluated in the environment it is called, rather
-than the environment in which it is defined. This is especially useful when you
-set the `:evaluate` option.
-
 The `:evaluate` option specifies whether the function arguments will be
 evaluated or not. The default value is 't, but if the value of this key is nil,
 the arguments will not be evaluated when the function is called. This allows you
-to create a macro-esque function.
+to create a function that acts a lot like a macro, but is more hygienic.
 
 When the function is run, the body forms are run in the closure created by
 binding the arguments to the parameters, and the final form's value is
@@ -273,7 +269,58 @@ closure).
 The function that was created from the parameters, options, and body is the
 value of this special form.
 
-### Conditional Branch
+#### Macros
+```
+(macro function)
+```
+
+Returns a macro. When executed, a macro calls the passed function with the
+arguments passed to the macro. The return value of the function is then replaced
+with the call to the macro like it was the original call.
+
+This is very similar to a unevaluated function with dynamic binding. The
+difference is that the return value of the function has dynamic binding at the
+place where the macro was executed. This makes it so that the macro's local
+variables aren't accessible to any code run in the return value. If you don't
+need this, use unevaluated functions. They are more hygienic.
+
+#### Evaluation
+```
+(eval form)
+```
+
+Evaluates the specified form in the current environment. This is the same as if
+the specified form had been evaluated at the position of the eval.
+
+### Quoting
+
+#### Quote
+```
+'(a b c)
+;->
+(quote (a b c))
+
+'other
+;->
+(quote other)
+```
+
+Prevents the specified list or atom from having any semantics. For example,
+`'(a b c)` prevents the list `(a b c)` from being evaluated as a form. Note that
+the syntax with the preceding `'` are transformed into the second syntax with
+the surrounding `(quote)` form. Whenever a `(quote)` form is executed, it simply
+returns it's argument as the value.
+
+Note that this is only really a special form because of the special syntax. It
+is actually defined as an unevaluated function and an internal read macro.
+
+#### Quasiquote
+
+
+
+### Control Flow
+
+#### Conditional Branch
 ```
 (if condition first second)
 ```
@@ -284,7 +331,7 @@ Evaluates the condition. If it is not nil, it evaluates the first form,
 returning it's value, otherwise it evaluates the second form, returning that
 form's value.
 
-### Chaining Evaluation
+#### Chaining Evaluation
 ```
 (begin body...)
 ```
@@ -293,14 +340,75 @@ Evaluates each body in order in the current closure, returning the value of the
 last form. This means all definitions contine to occur where the body was
 called.
 
-### Application
+### Lexical Variables
+
+#### Definiton
 ```
-(apply function list)
+(define var value)
 ```
 
-Calls the function with the specified list as the argument list. The function
-can actually be anything that can be applied with non-special forms or a special
-form. Therefore, anything you call like a normal function can be applied.
+Binds the symbol `var` to `value`. This occurs in the closure that define was
+executed in, so it can be shadowed by defines lower in the chain. This should
+not be used for global variables; see the section on dynamic variables.
+
+This can be shadowed in closures lower in the chain.
+
+#### Assignment 
+```
+(set! var value)
+```
+
+Changes the value of the symbol `var` to `value`. This changes the value in the
+closure that `var` is bound in, so it does not shadow any bindings. This
+assignment is generic and can reach into data structures to change their values.
+
+Some examples:
+
+```
+(define x '(1 2 3))
+(set! (x 1) 5)
+x ;=> (1 5 3)
+
+(define t (:first-value 5 :other-value 7))
+(set! (t :other-value) 8)
+t ;-> (:first-value 5 :other-value 8)
+```
+
+### Dynamic Variables
+
+#### Global
+```
+(global var value)
+```
+
+Creates a global variable. Global variables have dynamic scoping, and can be
+shadowed by local dynamic bindings. 
+
+#### Local
+```
+(binding var value body...)
+```
+
+Creates a local dynamic variables. If there is a global dynamic variable with
+the same name, then the local variable shadows it.
+
+### Foreign Functions
+
+#### Importing
+```
+(import "libc.so" 'libc)
+```
+
+Imports the shared library into the "libc" namespace.
+
+#### Calling
+```
+; Continued from above
+(call 'libc/printf "%d" 15)
+```
+
+Calls the library function from a namespace. Triggers a restart if the types of
+the parameters can't be coerced to the C parameter types.
 
 ### Sandboxing
 ```
@@ -314,25 +422,55 @@ symbols from access by the body, an `:exclude` option allows you to specify a
 list of symbols and packages to exclude. This is useful when you have code to
 run from a source outside of the program text, like an extension script.
 
-
 ## Standard Definitions
+
+### Application
+```
+(define apply (fn (function func
+                   list arguments)
+  (eval `(,func ,@arguments))))
+```
+
+Calls the function with the specified list as the argument list. The function
+can actually be anything that can be applied with non-special forms or a special
+form. Therefore, anything you call like a normal function can be applied.
+
 
 ### Let Forms
 
 #### Single Variable
 ```
-(let var value body...)
+(define let (macro (fn (symbol var
+                        generic value
+                        symbol (keyword name :named :passed name-passed?)
+                        &body)
+  (if name-passed?
+    `(binding ,name (fn (,(type value) var) ,@body)
+       (,name ,value))
+    `((fn (,(type value) ,var) ,@body) ,value)))))
 ```
 
-((lambda (var) body...) value)
-
+#### Multiple Variables
+```
+(define let (macro (fn (list bindings
+                        symbol (keyword name :named :passed name-passed?)
+                        &body)
+  (if name-passed?
+    `(let ,(car bindings) ,(cadr bindings) :named ,name
+       (let ,(cddr bindings) ,@body))
+    `(let ,(car bindings) ,(cadr bindings)
+       (let ,(cddr bindings) ,@body))))))
+```
 
 ## Rationale 
 
-Functions with unevaluated arguments and dynamic binding are preferred over
-macros because they permit more flexibility. A significance performance loss is
-not realized since macros are evaluated at runtime anyways in a JIT environment.
-This also takes away one more special form.
+Functions with unevaluated arguments are preferred over macros because they are
+more hygienic. The return values from macros are executed in the environment
+that the macro was called, which is preferably in some situations, but allows
+any bindings to override the very meaning of a carelessly created macro. A
+significant performance loss is not realized with unevaluated functions either,
+since macros are evaluated at runtime anyways in a JIT environment. In some
+cases macros can actually be slower than a function with unevaluated arguments,
 
 Every function being generic doesn't mean the implementation has to be in place
 for functions that aren't generic. Also, since the JIT is compiling code at
@@ -349,29 +487,16 @@ memory is irrelevant to their usage, and the implementation can likely choose
 the correct memory storage better than the programmer with a simple analysis of
 how the list is used on a case-by-case basis. It is a JIT compiler after all.
 
-Read macros don't affect anything outside of the package they are defined in by
-default to prevent collisions. They can be imported explicitly into a package if
-desired. Since they can't be namespaced in the same way that other language
-features can, they are essentially global. We should therefore treat them very
-carefully, and being explicit is the best way to do that. However, although
-removal could be an option, it is important to be able to create shortcuts in
-the name of brevity.
-
-Changing functions is a dangerous thing to add to the language, and it is
-suggested that it is used sparingly. There are other things like this available
-to make the language more powerful, like read macros, which allow you to change
-the syntax, albeit in a limited way. Adding powerful features to a language
-doesn't preclude stability. With the power of homoiconicity, code to warn when
-certain functions are used incorrectly or frequently is easy to write.
-Therefore, anyone concerned about the use of these functions can easily verify
-that they are used wisely, and so it isn't a problem.
+Adding powerful but dangerous features to a language doesn't preclude stability.
+With the power of homoiconicity, code to warn when certain functions are used
+incorrectly or frequently is easy to write. Therefore, anyone concerned about
+the use of these functions can easily verify that they are used wisely, so it
+isn't a problem.
 
 # Notes
 
 *What's left:*
 - foreign functions
-- assignment
-- dynamic/globals
 - quoting
 - lists
 - numbers
