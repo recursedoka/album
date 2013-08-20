@@ -143,12 +143,15 @@ the function was defined.
 If it is a list, then the there can only be one argument, which, when evaluated,
 must be an integer value. The value at that index of the list is returned.
 
+If it is a symbol, then the there can only be one argument, which, when evaluated,
+must be an integer value. The character at that index in the symbol is returned.
+
 If it is a hash table, then there can be only one argument, which, when
 evaluated, must be a keyword value.  The value of that key in the hash table is
 returned if it exists, otherwise nil is returned.
 
 If it is a package, then there can only be one argument, which, when evaluated,
-must be  a symbol value. The value of that symbol in the package is returned if
+must be a symbol value. The value of that symbol in the package is returned if
 it exists, otherwise nil is returned. 
 
 If it is a number, a list is created, with the the first value being the number
@@ -165,14 +168,18 @@ t. If arguments are given, the first argument is the value of the first key, and
 the additional arguments are key value pairs. The return value is that hash
 table.
 
-If it is a symbol, including nil, no arguments are allowed, and the symbol
-itself is returned.
+If it is nil, nil is returned.
 
 ## Special Forms
 
 The following special forms take precedence over the last section. Each section
 starts with the syntax, followed by a one line summary, followed by a
 detailed description of the semantics.
+
+Special forms require access to the underlying VM, and cannot exist without
+special allowances. They cannot be defined with functions or macros, and
+sometimes are the forms that directly correlate to assembly code. These are the
+basic building blocks of the language.
 
 ### Table of Contents
 
@@ -188,8 +195,7 @@ detailed description of the semantics.
 ```
 (fn (parameter ...) :case guard :evaluate nil :dynamic 't body...)
 parameter := type symbol
-           | type (optional symbol :default value :passed symbol)
-           | type (keyword  symbol keyword :default value  :passed symbol)
+           | type (symbol keyword :default value :passed symbol)
            | &symbol
 ```
 
@@ -220,26 +226,13 @@ is the symbol that the matched argument should be bound to. This form of
 parameter must be matched, and they are matched in the order they are defined in
 the parameter list. These must precede all optional parameters.
 
-The binding specifier may be a list. If it is, the first value of the list can
-either be the unquoted symbol `optional` or `keyword`.
-
-If the first item in the list is the unquoted symbol `optional`, then an
-optional argument is specified, meaning this parameter does not need to be
-matched in the argument list.  The second symbol is the name to bind the
-matched argument to, if it was matched. Then any number of key value pairs can
-be specified as optionals. All optional parameters must follow nonoptional
-parameters. These parameter forms are matched in the order they are defined in
-the parameter list.
-
-If the first item in the list is the unquoted symbol `keyword`, then a keyword
-argument is specified, meaning this parameter should be specified by an optional
-key-value pair. The second item in the list is an unquoted symbol to bind the
-value afer the keyword to, if it was specified. Keyword parameters need no order,
-since they are specified by a key anywhere in the argument list. The third item
-in the list is the keyword for which the value should be found in the argument
-list.
-
-Both of these binding specified share a number of options, as follows.
+If the binding specifier is a list, then a keyword parameter is specified,
+meaning this parameter should be specified by an optional key-value pair. The
+first item in the list is an unquoted symbol to bind the value after the keyword
+to, if it was specified. The second item in the list is the keyword for which
+the value should be found in the argument list. Keyword parameters need no
+order, since they are specified by a key anywhere in the argument list. This
+form has a number of options, as follows.
 
 The `:default` option specifies a value to bind to the symbol if it was not
 matched with a value in the argument list.
@@ -270,6 +263,26 @@ closure).
 The function that was created from the parameters, options, and body is the
 value of this special form.
 
+#### Source Code Access
+```
+(source func)
+```
+
+Returns the source form that created this function.
+
+#### Generics
+```
+(extend function new-function)
+```
+
+Adds a new dispatch to a function. Initially a function is defined with a single
+dispatch. After adding the second dispatch to a function, they are sorted by how
+specific they are. Functions with more specific types and parameters are more
+specific, and therefore are closer to the top of the list. Each function's
+parameter list is matched with the argument list, until a successful match is
+found. When that happens, the matched dispatch is run, and the function returns
+its value.
+
 #### Macros
 ```
 (macro function)
@@ -293,34 +306,12 @@ need this, use unevaluated functions. They are more hygienic.
 Evaluates the specified form in the current environment. This is the same as if
 the specified form had been evaluated at the position of the eval.
 
-### Quoting
-
-#### Quote
+### Gensym
 ```
-'(a b c)
-;->
-(quote (a b c))
-
-'other
-;->
-(quote other)
+(gensym)
 ```
 
-Prevents the specified list or atom from having any semantics. For example,
-`'(a b c)` prevents the list `(a b c)` from being evaluated as a form. Note that
-the syntax with the preceding `'` are transformed into the second syntax with
-the surrounding `(quote)` form. Whenever a `(quote)` form is executed, it simply
-returns it's argument as the value.
-
-Note that this is only really a special form because of the special syntax. It
-is actually defined as an unevaluated function and an internal read macro.
-
-#### Quasiquote
-```
-`(a ,b c)
-;->
-(list 'a b 'c)
-```
+Generates a unique symbol. Especially useful for making macros more hygienic.
 
 ### Splicing
 ```
@@ -345,10 +336,8 @@ returning it's value, otherwise it evaluates the second form, returning that
 form's value.
 
 ### Lexical Variables
-
-#### Definiton
 ```
-(define var value)
+(def var value)
 ```
 
 Binds the symbol `var` to `value`. This occurs in the closure that define was
@@ -357,7 +346,23 @@ not be used for global variables; see the section on dynamic variables.
 
 This can be shadowed in closures lower in the chain.
 
-#### Assignment 
+### Global Variables
+```
+(global var value)
+```
+
+Creates a global variable. Global variables have dynamic scoping, and can be
+shadowed by local dynamic bindings. 
+
+### Dynamic Bindings
+```
+(binding var value body...)
+```
+
+Creates a local dynamic variable. If there is a global dynamic variable with
+the same name, then the local variable shadows it.
+
+### Assignment 
 ```
 (set! var value)
 ```
@@ -369,7 +374,7 @@ assignment is generic and can reach into data structures to change their values.
 Some examples:
 
 ```
-(define x '(1 2 3))
+(def x '(1 2 3))
 (set! (x 1) 5)
 x ;=> (1 5 3)
 
@@ -378,23 +383,23 @@ x ;=> (1 5 3)
 t ;-> (:first-value 5 :other-value 8)
 ```
 
-### Dynamic Variables
+### Structs
 
-#### Global
 ```
-(global var value)
+(struct 'name (data...)
+  :inherit nil
+  )
+data := type name
+      | type (name
+               :accessor ('t 't) ; (read write)
+               :construct 't ; include in the constructor?
+               :default 213 ; default value
+               :keyword 't) ; keyword in constructor
 ```
 
-Creates a global variable. Global variables have dynamic scoping, and can be
-shadowed by local dynamic bindings. 
+### Packages
 
-#### Local
-```
-(binding var value body...)
-```
 
-Creates a local dynamic variables. If there is a global dynamic variable with
-the same name, then the local variable shadows it.
 
 ### Foreign Functions
 
@@ -428,21 +433,59 @@ run from a source outside of the program text, like an extension script.
 
 ## Standard Definitions
 
+Standard definitions are essentially in between special forms and non-special
+forms. They are all defined as functions and macros, but they are allowed to
+access the internal read macro interface, so they can have shortcut syntax. None
+of them are defined with foreign functions, and all definitions are provided.
+The main goal of the standard definitions is to help develop clear yet succinct
+code fast and easily.
+
+### Quoting
+
+#### Quote
+```
+'(a b c)
+;->
+(quote (a b c))
+
+'other
+;->
+(quote other)
+
+(def quote (fn (x) :evaluate nil x))
+```
+
+Prevents the specified list or atom from having any semantics. For example,
+`'(a b c)` prevents the list `(a b c)` from being evaluated as a form. Note that
+the syntax with the preceding `'` are transformed into the second syntax with
+the surrounding `(quote)` form. Whenever a `(quote)` form is executed, it simply
+returns it's argument as the value.
+
+Note that this is only really a special form because of the special syntax. It
+is actually defined as an unevaluated function and an internal read macro.
+
+#### Quasiquote
+```
+`(a ,b c)
+;->
+(list 'a b 'c)
+```
+
 ### Let Forms
 
 ### No Variable
 ```
-(define begin (macro (fn (&body)
+(def begin (macro (fn (&body)
   `(,fn ()
       ,@body))))
 ```
 
 #### Single Variable
 ```
-(define let (macro (fn (symbol var
-                        generic value
-                        symbol (keyword name :named :passed name-passed?)
-                        &body)
+(def let (macro (fn (symbol var
+                     generic value
+                     symbol (keyword name :named :passed name-passed?)
+                     &body)
   (if name-passed?
     `(binding ,name (fn (,(type value) var) ,@body)
        (,name ,value))
@@ -451,9 +494,9 @@ run from a source outside of the program text, like an extension script.
 
 #### Multiple Variables
 ```
-(define let (macro (fn (list bindings
-                        symbol (keyword name :named :passed name-passed?)
-                        &body)
+(def let (macro (fn (list bindings
+                     symbol (keyword name :named :passed name-passed?)
+                     &body)
   (if name-passed?
     `(let ,(car bindings) ,(cadr bindings) :named ,name
        (let ,(cddr bindings) ,@body))
@@ -495,17 +538,13 @@ isn't a problem.
 # Notes
 
 *What's left:*
-- foreign functions
-- quoting
 - lists
 - numbers
 - characters
 - keywords
 - packages
 - structs
-- arity matching
 - restarts
-- read macros
 - concurrency
 
 <!--%a-%t
