@@ -1,4 +1,4 @@
-<img src="https://gist.github.com/recursedoka/ace6882be7a2f90180c1/raw/02c95618ff54ec31b45124fc5db4e1344770e130/logo.png"/>
+<img src="logo.png"/>
 
 Album (meaning list in Latin) is a Lisp dialect that attempts to gather the best
 ideas and features from other Lisp dialects and bring them into a single, robust
