@@ -80,6 +80,7 @@ $fut -> (deref fut)
 
 (func-or-macro args ...) => calls func with args or expands macro with args
 [+ _ 2] -> (fn (_) (+ _ 2))
+{4 + 2 3} -> (+ 4 2 3) => 9
 (:key value :key2 value2) -> (hash :key value :key2 value2)
 '(x) -> (quote (x))
 (let (x 2 y '(3 4)) `(+ ,x ,@y)) -> (+ 2 3 4)
@@ -315,8 +316,20 @@ Note that this is only really a special form because of the special syntax. It
 is actually defined as an unevaluated function and an internal read macro.
 
 #### Quasiquote
+```
+`(a ,b c)
+;->
+(list 'a b 'c)
+```
 
+### Splicing
+```
+(let list '(1 2 3)
+  (+ @list))
+```
 
+Takes the value of the list and splices into the current form. Allows you to do
+extremely cool things. It's apply for pros.
 
 ### Control Flow
 
@@ -330,15 +343,6 @@ Branches to either the first or second branch depending on the condition.
 Evaluates the condition. If it is not nil, it evaluates the first form,
 returning it's value, otherwise it evaluates the second form, returning that
 form's value.
-
-#### Chaining Evaluation
-```
-(begin body...)
-```
-
-Evaluates each body in order in the current closure, returning the value of the
-last form. This means all definitions contine to occur where the body was
-called.
 
 ### Lexical Variables
 
@@ -399,7 +403,7 @@ the same name, then the local variable shadows it.
 (import "libc.so" 'libc)
 ```
 
-Imports the shared library into the "libc" namespace.
+Imports the shared library into a namespace.
 
 #### Calling
 ```
@@ -424,19 +428,14 @@ run from a source outside of the program text, like an extension script.
 
 ## Standard Definitions
 
-### Application
-```
-(define apply (fn (function func
-                   list arguments)
-  (eval `(,func ,@arguments))))
-```
-
-Calls the function with the specified list as the argument list. The function
-can actually be anything that can be applied with non-special forms or a special
-form. Therefore, anything you call like a normal function can be applied.
-
-
 ### Let Forms
+
+### No Variable
+```
+(define begin (macro (fn (&body)
+  `(,fn ()
+      ,@body))))
+```
 
 #### Single Variable
 ```
