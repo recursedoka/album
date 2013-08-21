@@ -39,7 +39,7 @@ $fut -> (deref fut)
 (io#print "hi") -> (io 'print) => nil ; prints hi
 
 (func-or-macro args ...) => calls func with args or expands macro with args
-[+ _ 2] -> (fn (_) (+ _ 2))
+[+ _ 2] -> (fn (_1) (let _ _1 (+ _ 2)))
 {4 + 2 3} -> (+ 4 2 3) => 9
 (:key value :key2 value2) -> (hash :key value :key2 value2)
 '(x) -> (quote (x))

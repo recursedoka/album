@@ -13,12 +13,12 @@ basic building blocks of the language.
 ## Functions and Macros
 
 ### Functions
-```
+
 (fn (parameter ...) :case guard :evaluate nil :dynamic 't body...)
 parameter := type symbol
            | type (symbol keyword :default value :passed symbol)
            | &symbol
-```
+
 
 Creates a function that accepts some arguments to be bound to the given
 parameters, and executes the given body forms in a closure with the arguments
@@ -85,16 +85,16 @@ The function that was created from the parameters, options, and body is the
 value of this special form.
 
 ### Source Code Access
-```
+
 (source func)
-```
+
 
 Returns the source form that created this function.
 
 ### Generics
-```
+
 (extend function new-function)
-```
+
 
 Adds a new dispatch to a function. Initially a function is defined with a single
 dispatch. After adding the second dispatch to a function, they are sorted by how
@@ -105,9 +105,9 @@ found. When that happens, the matched dispatch is run, and the function returns
 its value.
 
 ### Macros
-```
+
 (macro function)
-```
+
 
 Returns a macro. When executed, a macro calls the passed function with the
 arguments passed to the macro. The return value of the function is then replaced
@@ -120,25 +120,25 @@ variables aren't accessible to any code run in the return value. If you don't
 need this, use unevaluated functions. They are more hygienic.
 
 ### Evaluation
-```
+
 (eval form)
-```
+
 
 Evaluates the specified form in the current environment. This is the same as if
 the specified form had been evaluated at the position of the eval.
 
 ## Gensym
-```
+
 (gensym)
-```
+
 
 Generates a unique symbol. Especially useful for making macros more hygienic.
 
 ## Splicing
-```
+
 (let list '(1 2 3)
   (+ @list))
-```
+
 
 Takes the value of the list and splices into the current form. Allows you to do
 extremely cool things. It's apply for pros.
@@ -146,9 +146,9 @@ extremely cool things. It's apply for pros.
 ## Control Flow
 
 ### Conditional Branch
-```
+
 (if condition first second)
-```
+
 
 Branches to either the first or second branch depending on the condition.
 
@@ -157,9 +157,9 @@ returning it's value, otherwise it evaluates the second form, returning that
 form's value.
 
 ## Lexical Variables
-```
+
 (def var value)
-```
+
 
 Binds the symbol `var` to `value`. This occurs in the closure that define was
 executed in, so it can be shadowed by defines lower in the chain. This should
@@ -168,25 +168,25 @@ not be used for global variables; see the section on dynamic variables.
 This can be shadowed in closures lower in the chain.
 
 ## Global Variables
-```
+
 (global var value)
-```
+
 
 Creates a global variable. Global variables have dynamic scoping, and can be
 shadowed by local dynamic bindings. 
 
 ## Dynamic Bindings
-```
+
 (binding var value body...)
-```
+
 
 Creates a local dynamic variable. If there is a global dynamic variable with
 the same name, then the local variable shadows it.
 
 ## Assignment 
-```
+
 (set! var value)
-```
+
 
 Changes the value of the symbol `var` to `value`. This changes the value in the
 closure that `var` is bound in, so it does not shadow any bindings. This
@@ -194,7 +194,7 @@ assignment is generic and can reach into data structures to change their values.
 
 Some examples:
 
-```
+
 (def x '(1 2 3))
 (set! (x 1) 5)
 x ;=> (1 5 3)
@@ -202,11 +202,11 @@ x ;=> (1 5 3)
 (define t (:first-value 5 :other-value 7))
 (set! (t :other-value) 8)
 t ;-> (:first-value 5 :other-value 8)
-```
+
 
 ## Structs
 
-```
+
 (struct 'name (data...)
   :inherit nil
   )
@@ -216,34 +216,55 @@ data := type name
                :construct 't ; include in the constructor?
                :default 213 ; default value
                :keyword 't) ; keyword in constructor
-```
+
 
 ## Packages
 
+    (def generic? ['t])
 
+    (def make-vector (fn
+      ((number? &args) :case (in (range 2 4) (length args)) (list args))))
+
+    (def vector? (fn
+      ((generic? v) false)
+      ((list? v)
+        (and (in (range 2 4) (length v))
+             (not (in (map v [number? _]) #f))))))
+
+    (def fibonacci (fn
+      (0 0)
+      (1 1)
+      ((number n) (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))
+
+
+    (def attack (fn
+      ((attackable attacker) (hurtable defender)
+        (zap! [- _ (attacker 'damage)] (defender 'health)))))
+
+a contract means that a type is accepted by the specified functions for a
+specific parameter
 
 ## Foreign Functions
 
 ### Importing
-```
+
 (import "libc.so" 'libc)
-```
+
 
 Imports the shared library into a namespace.
 
 ### Calling
-```
+
 ; Continued from above
 (call 'libc/printf "%d" 15)
-```
+
 
 Calls the library function from a namespace. Triggers a restart if the types of
 the parameters can't be coerced to the C parameter types.
 
 ## Sandboxing
-```
+
 (sandbox form-list :exclude exclude-list body...)
-```
 
 Executes the body, limiting what functions and forms can be used. The form-list
 specifies which packages and forms can be used. The list can contain both
