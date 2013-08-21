@@ -220,29 +220,25 @@ data := type name
 
 ## Packages
 
-    (def generic? ['t])
+    (def attack (fn :template (_ (hurtable opponent))))
 
-    (def make-vector (fn
-      ((number? &args) :case (in (range 2 4) (length args)) (list args))))
+    ; just needs to be able to sustain damage
+    (def hurtable (contract (has-slot 'health)))
+    ; being invincible is unfair, and must be able to attack
+    (def can-fight (contract :requires (hurtable) (fits-param 1 attack)))
 
-    (def vector? (fn
-      ((generic? v) false)
-      ((list? v)
-        (and (in (range 2 4) (length v))
-             (not (in (map v [number? _]) #f))))))
+    (def demon (class (string name) (number damage) (number health))
+    (def deer (class (number health))
 
-    (def fibonacci (fn
-      (0 0)
-      (1 1)
-      ((number n) (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))
+    ; make the demon able to fight
+    (extend attack ((demon attacker) (hurtable opponent)
+      (zap! [- _ (attacker 'damage)] (opponent 'health))))
 
+    (make demon 'name "Balzdor" 'damage 100 'health 10000)
+    (make deer 'health 110)
 
-    (def attack (fn
-      ((attackable attacker) (hurtable defender)
-        (zap! [- _ (attacker 'damage)] (defender 'health)))))
-
-a contract means that a type is accepted by the specified functions for a
-specific parameter
+    (attack demon deer)
+    (deer 'health) ;-> 10
 
 ## Foreign Functions
 

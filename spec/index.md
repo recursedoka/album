@@ -31,15 +31,15 @@ nil -> '() => ()
 "hello ~"world~"" -> (\h \e \l \l \o \space \" \w \o \r \l \d \")
 a:b:c -> (fn args (a (b (apply c args))))
 -.6.3.1 -> (- 6 3 1) => 2
-(let b 2 list!a.b!c) -> (let b 2 (list 'a b 'c)) => (a 2 c)
+(let b 2 list#a.b#c) -> (let b 2 (list 'a b 'c)) => (a 2 c)
+(io#print "hi") -> ((io 'print) "hi") => nil ; prints hi
 $fut -> (deref fut)
 ^4 -> (fn (n) (expt n 4))
 ;comment ->
 (let |'woah| 2 |'woah|) => 2
-(io#print "hi") -> (io 'print) => nil ; prints hi
 
 (func-or-macro args ...) => calls func with args or expands macro with args
-[+ _ 2] -> (fn (_1) (let _ _1 (+ _ 2)))
+[+ _ 2] -> (fn (_) (+ _ 2))
 {4 + 2 3} -> (+ 4 2 3) => 9
 (:key value :key2 value2) -> (hash :key value :key2 value2)
 '(x) -> (quote (x))
